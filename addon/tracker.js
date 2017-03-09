@@ -3,9 +3,9 @@ import {valuesChanged, hasManyChanged, relationShipTransform} from './utilities'
 
 const assign = Ember.assign || Ember.merge;
 export const ModelTrackerKey = '-change-tracker';
-const alreadyTrackedRegex    = /^-mf-|string|boolean|date|^number$/,
-      knownTrackerOpts       = Ember.A(['only', 'auto', 'except', 'trackHasMany', 'enableIsDirty']),
-      defaultOpts            = { trackHasMany: true, auto: false, enableIsDirty: false };
+const alreadyTrackedRegex = /^-mf-|string|boolean|date|^number$/,
+  knownTrackerOpts = Ember.A(['only', 'auto', 'except', 'trackHasMany', 'enableIsDirty']),
+  defaultOpts = {trackHasMany: true, auto: false, enableIsDirty: false};
 
 /**
  * Helper class for change tracking models
@@ -119,7 +119,7 @@ export default class Tracker {
    * @returns {*} all the meta info on this model that tracker is tracking
    */
   static metaInfo(model, key = null) {
-    let info = (model.constructor.trackerKeys || {});
+    let info = model.constructor.trackerKeys || {};
     if (key) {
       return info[key];
     }
@@ -195,28 +195,33 @@ export default class Tracker {
     let [trackableInfo, hasManyList] = this.extractKeys(model);
     let trackerOpts = this.options(model);
 
-    let all = new Set(Object.keys(trackableInfo));
-    let except = new Set(trackerOpts.except || []);
-    let only = new Set(trackerOpts.only || [...all]);
+    let __allKeys = Object.keys(trackableInfo);
+
+    let __exceptKeys = trackerOpts.except || [];
+    let __onlyKeys = trackerOpts.only || __allKeys;
 
     if (!trackerOpts.trackHasMany) {
-      except = new Set([...except, ...hasManyList]);
+      __exceptKeys = Ember.A().uniq.call(__exceptKeys.concat(hasManyList));
     }
-
-    all = new Set([...all].filter(a => !except.has(a)));
-    all = new Set([...all].filter(a => only.has(a)));
+    __allKeys = __allKeys
+      .filter((key) => {
+        return !__exceptKeys.includes(key);
+      })
+      .filter((key) => {
+        return __onlyKeys.includes(key);
+      });
 
     let keyMeta = {};
-    Object.keys(trackableInfo).forEach(key => {
-      if (all.has(key)) {
+    Object.keys(trackableInfo).forEach((key) => {
+      if (__allKeys.includes(key)) {
         let info = trackableInfo[key];
         info.transform = this.getTransform(model, key, info);
         keyMeta[key] = info;
       }
     });
 
-    let { enableIsDirty } = trackerOpts;
-    return { autoSave: trackerOpts.auto, enableIsDirty, keyMeta };
+    let {enableIsDirty} = trackerOpts;
+    return {autoSave: trackerOpts.auto, enableIsDirty, keyMeta};
   }
 
   /**
@@ -227,13 +232,13 @@ export default class Tracker {
    * @returns {[*,*]} meta data about possible keys to track
    */
   static extractKeys(model) {
-    let { constructor } = model;
+    let {constructor} = model;
     let trackerKeys = {};
     let hasManyList = [];
 
     constructor.eachAttribute((attribute, meta) => {
       if (!alreadyTrackedRegex.test(meta.type)) {
-        trackerKeys[attribute] = { type: 'attribute', name: meta.type };
+        trackerKeys[attribute] = {type: 'attribute', name: meta.type};
       }
     });
 
@@ -407,12 +412,12 @@ export default class Tracker {
 
     const hasDirtyRelations = function() {
       const changed = model.changed();
-      return !!relations.find(key => changed[key]);
+      return !!relations.find((key) => changed[key]);
     };
 
     const hasDirtyAttributes = function() {
       const changed = model.changed();
-      return !!attrs.find(key => changed[key]);
+      return !!attrs.find((key) => changed[key]);
     };
 
     const isDirty = function() {
