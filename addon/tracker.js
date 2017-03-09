@@ -3,9 +3,9 @@ import {valuesChanged, hasManyChanged, relationShipTransform} from './utilities'
 
 const assign = Ember.assign || Ember.merge;
 export const ModelTrackerKey = '-change-tracker';
-const alreadyTrackedRegex = /^-mf-|string|boolean|date|^number$/,
-  knownTrackerOpts = Ember.A(['only', 'auto', 'except', 'trackHasMany', 'enableIsDirty']),
-  defaultOpts = {trackHasMany: true, auto: false, enableIsDirty: false};
+const alreadyTrackedRegex    = /^-mf-|string|boolean|date|^number$/,
+      knownTrackerOpts       = Ember.A(['only', 'auto', 'except', 'trackHasMany', 'enableIsDirty']),
+      defaultOpts            = { trackHasMany: true, auto: false, enableIsDirty: false };
 
 /**
  * Helper class for change tracking models
@@ -119,7 +119,7 @@ export default class Tracker {
    * @returns {*} all the meta info on this model that tracker is tracking
    */
   static metaInfo(model, key = null) {
-    let info = model.constructor.trackerKeys || {};
+    let info = (model.constructor.trackerKeys || {});
     if (key) {
       return info[key];
     }
@@ -232,13 +232,13 @@ export default class Tracker {
    * @returns {[*,*]} meta data about possible keys to track
    */
   static extractKeys(model) {
-    let {constructor} = model;
+    let { constructor } = model;
     let trackerKeys = {};
     let hasManyList = [];
 
     constructor.eachAttribute((attribute, meta) => {
       if (!alreadyTrackedRegex.test(meta.type)) {
-        trackerKeys[attribute] = {type: 'attribute', name: meta.type};
+        trackerKeys[attribute] = { type: 'attribute', name: meta.type };
       }
     });
 
@@ -412,12 +412,12 @@ export default class Tracker {
 
     const hasDirtyRelations = function() {
       const changed = model.changed();
-      return !!relations.find((key) => changed[key]);
+      return !!relations.find(key => changed[key]);
     };
 
     const hasDirtyAttributes = function() {
       const changed = model.changed();
-      return !!attrs.find((key) => changed[key]);
+      return !!attrs.find(key => changed[key]);
     };
 
     const isDirty = function() {
